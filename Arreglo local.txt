@@ -1,0 +1,12 @@
+Arreglo local
+
+Municipio - Bogotá, d.c -> Bogotá - cambios 2000
+Nombre sede -Col, Empresarial de los andes -> Col empresarial de los andes - 34
+Nombre Sede - ""COLEGIO CEVAL - (CON ESFUERZO"," VALOR", -> COLEGIO CEVAL - (CON ESFUERZO  VALOR  ALEGRÍA Y LUCHA) - 25
+Nombre Sede - ""GIMNASIO DEL DAGUA"," TOCOTA"" -> GIMNASIO DEL DAGUA-TOCOTA - 14
+Nombre Sede - INSTITUCIÓN EDUCATIVA TÉCNICA  AGROPECUARIA"," ECOLÓGICA E INFORMÁTICA RAFAEL NUÑEZ"" ->INSTITUCIÓN EDUCATIVA TÉCNICA AGROPECUARIA ECOLÓGICA E INFORMÁTICA RAFAEL NUÑEZ - 21
+Nombre Sede - ""INST SER INTERNACIONAL"," COMUNA 17"" -> INST SER INTERNACIONAL COMUNA 17 - 30
+Municipio - ""BOGOTÁ"," D.C."" -> BOGOTÁ - 20000
+Municipio - ""BOGOTÁ"," D.C."" -> BOGOTÁ - 20000
+Municipio - ""BOGOTÁ"," D.C."" -> BOGOTÁ - 20000
+Municipio - ""BOGOTÁ"," D.C."" -> BOGOTÁ - 12563

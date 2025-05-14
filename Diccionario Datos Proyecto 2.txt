@@ -1,0 +1,64 @@
+Diccionario Datos Proyecto 2
+
+Periodo - Periodo de los resultados
+TipoDocumento - Tipo de documento del estudiante
+Documento - # Documento del estudiante
+Zona -Zona del colegio rural/urbano
+Bilingüe - Si el colegio es bilingüe
+Calendario - Calendario del colegio
+Carácter - Carácter del colegio académico/técnico
+DaneEstablecimiento - Código DANE del Establecimiento
+DaneSede - Código DANE de la Sede
+CodigoDpto - Codigo del departamento
+CodigoMcpio - Codigo del municipio
+CodigoIcfes - Codigo Icfes del colegio
+Dpto - Departamento del colegio
+Genero -Genero del colegio
+Jornada - Jornada del colegio
+Mcpio - Municipio del colegio
+Naturaleza - Naturaleza del colegio
+NombreEst - Nombre establecimiento
+NombreSede - Nombre de la sede
+SedePrincipal - es la sede principal
+CodDptoPres - Código del Departamento de Presentación del examen.
+CodMcpioPres - Código del Municipio de Presentación del examen
+CodDeptoReside - Código del Departamento de residencia del examinando
+CodMcpioReside - Código del municipio de residencia del examinando
+DptoPres - Departamento de Presentación del examen
+DptoReside - Departamento de residencia del examinando
+Investigación - Permite el uso de datos
+TipoEstudiante - S si es estudiante o N si es individual
+FechaNac - Fecha de nacimiento del examinando
+Sexo - Genero del examinando
+McpioPres - Municipio de Presentación del examen.
+McpioReside - Municipio de residencia del examinando
+Nacionalidad - Nacionalidad el estudiante
+PaisReside - Pais de recidencia
+Libertad - ¿Privado de la libertad?
+CuartosHogar - ¿Cuántos cuartos tiene su hogar?
+EduMadre - Nivel de estudios de la madre
+EduPadre - Nivel de estudios del padre
+Estrato - Estrato del examinando
+PersonasHogar - ¿Con cuantas personas vive?
+Automóvil - ¿Tiene automóvil?
+Computador - ¿Computador?
+Internet - ¿Internet?
+Lavadora ¿Lavadora?
+NivelIngles - Desempeño Inglés
+Ingles - Puntaje Inglés
+Mate - Puntaje Matemáticas
+sociales - Puntaje Sociales
+Ciencias - Puntaje Ciencias
+Lectura - Puntaje Lectura Critica
+Global - Puntaje Global
+
+
+
+
+
+
+
+
+
+
+
