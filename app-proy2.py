@@ -9,7 +9,10 @@ import pickle
 import pandas as pd
 import numpy as np
 
-model_mate = load_model('Model_mate.keras')
+df_Mate = pd.read_csv('SaberMate.csv')
+df_Ingles = pd.read_csv('SaberIngles.csv')
+
+model_mate = load_model('model_mate.keras')
 with open('one_hot_encoder.pkl', 'rb') as f:
     one_hot_encoder = pickle.load(f)
 
@@ -87,20 +90,30 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX], suppress_callba
 
 app.layout = dbc.Container([
     dbc.Tabs([
+        dbc.Tab(label="1. Mapa Nivel Matemáticas", tab_id="tab1"),
         dbc.Tab(label="2. Matriz Confusión Matemáticas", tab_id="tab2"),
         dbc.Tab(label="3. Matriz Confusión Inglés", tab_id="tab3"),
         dbc.Tab(label="4. Predicción Personalizada", tab_id="tab4"),
         dbc.Tab(label="5. Métricas Modelos", tab_id="tab5"),
-    ], id="tabs", active_tab="tab4"),
+    ], id="tabs", active_tab="tab1"),  # Puedes cambiar active_tab inicial
     html.Div(id="tab-content", className="p-4")
 ], fluid=True)
+
 
 @app.callback(
     Output("tab-content", "children"),
     Input("tabs", "active_tab")
 )
 def render_tab(tab):
-    if tab == "tab2":
+    if tab == "tab1":
+        # Muestra el mapa cargado desde archivo HTML dentro de un iframe
+        with open("mapa_mate_colombia.html", 'r', encoding='utf-8') as f:
+            mapa_html = f.read()
+        return html.Div([
+            html.H3("Mapa Promedio Nivel Matemáticas por Departamento"),
+            html.Iframe(srcDoc=mapa_html, style={"width": "100%", "height": "700px", "border": "none"})
+        ])
+    elif tab == "tab2":
         return html.Div([
             html.H3("Matriz de Confusión Matemáticas"),
             serve_confusion_image("confusion_matrix.png")
@@ -156,7 +169,9 @@ def run_prediction(n_clicks, *values):
     input_dict = dict(zip(variables_seleccionadas, values))
     try:
         X_vec = transform_inputs_to_vector(input_dict)
+        print("Input transformado:", X_vec)
         pred_prob = model_mate.predict(X_vec)
+        print("Probabilidades:", pred_prob)
         pred_class = np.argmax(pred_prob, axis=1)[0]
         categoria = map_class_to_label(pred_class)
         return html.Div([
@@ -164,6 +179,7 @@ def run_prediction(n_clicks, *values):
         ], style={"fontSize": "22px", "fontWeight": "bold"})
     except Exception as e:
         return html.Div(f"Error en la predicción: {e}", style={"color": "red"})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
