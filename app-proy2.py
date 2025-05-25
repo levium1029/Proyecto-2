@@ -86,17 +86,46 @@ with open("metrics_mate.json", "r") as f:
 with open("metrics_mate.json", "r") as f:
     metrics_ingles = json.load(f)
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX], suppress_callback_exceptions=True)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
+
+import dash_bootstrap_components as dbc
+from dash import html
 
 app.layout = dbc.Container([
+    dbc.NavbarSimple(
+        brand="MEN - Analítica Educativa Saber 11",
+        color="#003366",
+        dark=True,
+        fixed="top",
+        style={"fontWeight": "bold", "fontSize": "20px"}
+    ),
+
+    # Espacio para que los tabs no queden debajo del Navbar fijo
+    html.Div(style={"height": "60px"}),
+
+    # Tabs visibles justo debajo del Navbar
     dbc.Tabs([
-        dbc.Tab(label="1. Mapa Nivel Matemáticas", tab_id="tab1"),
-        dbc.Tab(label="2. Matriz Confusión Matemáticas", tab_id="tab2"),
-        dbc.Tab(label="3. Matriz Confusión Inglés", tab_id="tab3"),
+        dbc.Tab(label="1. Mapas por Departamento", tab_id="tab1"),
+        dbc.Tab(label="2. Pregunta de negocio 1", tab_id="tab2"),
+        dbc.Tab(label="3. Pregunta de negocio 2", tab_id="tab3"),
         dbc.Tab(label="4. Predicción Personalizada", tab_id="tab4"),
-        dbc.Tab(label="5. Métricas Modelos", tab_id="tab5"),
-    ], id="tabs", active_tab="tab1"),  # Puedes cambiar active_tab inicial
-    html.Div(id="tab-content", className="p-4")
+        dbc.Tab(label="5. Métricas y ROC", tab_id="tab5"),
+    ], id="tabs", active_tab="tab1"),
+
+    # Contenido dinámico según pestaña seleccionada
+    html.Div(id="tab-content", className="p-4",
+             style={"backgroundColor": "#f8f9fa",
+                    "minHeight": "80vh",
+                    "borderRadius": "10px",
+                    "boxShadow": "0 4px 8px rgba(0,0,0,0.1)",
+                    "marginTop": "20px"}),
+
+    # Footer
+    html.Footer(
+        "© 2025 Ministerio de Educación Nacional de Colombia - Proyecto de Analítica Educativa",
+        style={"textAlign": "center", "color": "#6c757d", "padding": "10px 0", "marginTop": "30px"}
+    )
+
 ], fluid=True)
 
 
@@ -106,55 +135,145 @@ app.layout = dbc.Container([
 )
 def render_tab(tab):
     if tab == "tab1":
-        # Muestra el mapa cargado desde archivo HTML dentro de un iframe
-        with open("mapa_mate_colombia.html", 'r', encoding='utf-8') as f:
-            mapa_html = f.read()
+        with open("mapa_mate_colombia.html", "r", encoding="utf-8") as f_mate, \
+            open("mapa_ingles_colombia.html", "r", encoding="utf-8") as f_ingles:
+            mapa_html_mate = f_mate.read()
+            mapa_html_ingles = f_ingles.read()
+
         return html.Div([
-            html.H3("Mapa Promedio Nivel Matemáticas por Departamento"),
-            html.Iframe(srcDoc=mapa_html, style={"width": "100%", "height": "700px", "border": "none"})
-        ])
+            html.H2("Mapa por Departamentos", style={
+                "textAlign": "center",
+                "marginBottom": "30px",
+                "fontWeight": "bold"
+            }),
+
+            dbc.Row([
+                dbc.Col([
+                    html.H4("Nivel promedio Matemáticas", style={
+                        "textAlign": "center",
+                        "marginBottom": "10px"
+                    }),
+                    html.Iframe(
+                        srcDoc=mapa_html_mate,
+                        style={"width": "100%", "height": "90vh", "border": "none"}
+                    )
+                ], width=6),
+
+                dbc.Col([
+                    html.H4("Nivel promedio Inglés", style={
+                        "textAlign": "center",
+                        "marginBottom": "10px"
+                    }),
+                    html.Iframe(
+                        srcDoc=mapa_html_ingles,
+                        style={"width": "100%", "height": "90vh", "border": "none"}
+                    )
+                ], width=6, style={"height": "90vh"}),
+            ],  style={"height": "90vh"})
+        ],  style={"height": "90vh"})
+    
     elif tab == "tab2":
         return html.Div([
-            html.H3("Matriz de Confusión Matemáticas"),
-            serve_confusion_image("confusion_matrix.png")
-        ])
+            html.H2("Pregunta de negocio 1:", style={"fontWeight": "bold"}),
+            html.P("¿Se puede predecir el resultado categorizado en matemáticas de acuerdo con el contexto personal y familiar del estudiante?",
+                    style={"fontStyle": "italic", "fontSize": "18px", "marginBottom": "20px"}
+            ),
+            html.Div(
+                    serve_confusion_image("confusion_matrix.png", width_pct=40),
+                    style={"display": "flex", "justifyContent": "center", "marginBottom": "5px"}
+            ),
+            html.Div("Datos en %", style={"textAlign": "center", "fontStyle": "italic", "marginTop": "5px"}),
+            html.Br(),
+            html.Div([
+                html.H4("Respuesta:"),
+                html.P(
+                    "Con base en la matriz de confusión, podemos observar que el modelo presenta una alta capacidad predictiva en las categorías más frecuentes, "
+                    "con una tasa adecuada de verdaderos positivos y bajas tasas de error en las predicciones. Esto indica que sí es posible predecir el resultado "
+                    "categorizado en matemáticas a partir del contexto personal y familiar del estudiante, aunque existen áreas de mejora en categorías menos representadas.",
+                    style={"fontSize": "20px"}  # Tamaño más grande
+                )
+            ], style={"marginTop": "30px"})
+        ], style={"padding": "20px"})
+    
     elif tab == "tab3":
         return html.Div([
-            html.H3("Matriz de Confusión Inglés"),
-            serve_confusion_image("confusion_matrix.png")
-        ])
+            html.H2("Pregunta de negocio 2:", style={"fontWeight": "bold"}),
+            html.P(
+                "¿Se puede predecir el resultado categorizado en inglés de acuerdo con el contexto escolar?",
+                style={"fontStyle": "italic", "fontSize": "18px", "marginBottom": "20px"}
+            ),
+            html.Div(
+                serve_confusion_image("confusion_matrix.png", width_pct=40),  # Cambia al archivo correcto
+                style={"display": "flex", "justifyContent": "center", "marginBottom": "5px"}
+            ),    
+            html.Div("Datos en %", style={"textAlign": "center", "fontStyle": "italic", "marginTop": "5px"}),
+            html.Br(),
+            html.Div([
+                html.H4("Respuesta:"),
+                html.P(
+                    "Según la matriz de confusión, el modelo demuestra una capacidad adecuada para predecir el nivel de inglés basado en el contexto "
+                    "personal y familiar del estudiante, aunque hay oportunidades para mejorar la precisión en ciertas categorías.",
+                    style={"fontSize": "20px"}
+                )
+            ], style={"marginTop": "30px"})
+        ], style={"padding": "20px"})
+
+    
     elif tab == "tab4":
         return html.Div([
-            html.H3("Predicción Personalizada"),
+            html.H3("Predicción Personalizada", style = {"fontWeight": "bold"}),
             html.P("Selecciona las características del estudiante para predecir su nivel en matemáticas."),
             generate_inputs_two_columns(),
             dbc.Button("Predecir", id="btn-prediccion", color="primary", className="mt-3"),
             html.Div(id="output-prediccion", className="mt-4")
         ])
+    
     elif tab == "tab5":
+        import base64
+
+        with open("roc_mate.png", "rb") as image_file:
+            encoded_roc_mate = base64.b64encode(image_file.read()).decode()
+        
+        with open("roc_mate.png", "rb") as image_file:
+            encoded_roc_ingles = base64.b64encode(image_file.read()).decode()
+
         return html.Div([
-            html.H3("Métricas de Desempeño"),
+            html.H2(
+                "Métricas de Desempeño",
+                style={"textAlign": "center", "fontWeight": "bold", "marginBottom": "30px"}
+            ),
+
             dbc.Row([
                 dbc.Col([
-                    html.H4("Modelo Matemáticas"),
+                    html.H4("Modelo Matemáticas", style={"fontWeight": "bold", "marginBottom": "15px"}),
+                    html.Img(
+                        src=f"data:image/png;base64,{encoded_roc_mate}",
+                        style={"width": "100%", "height": "600px", "marginBottom": "20px"}
+                    ),
                     html.Ul([
-                        html.Li(f"Accuracy: {metrics_mate['accuracy']:.2f}"),
-                        html.Li(f"Precision: {metrics_mate['precision']:.2f}"),
-                        html.Li(f"Recall: {metrics_mate['recall']:.2f}"),
-                        html.Li(f"F1-score: {metrics_mate['f1']:.2f}"),
+                        html.Li([html.B("Accuracy: "), f"{metrics_mate['accuracy']:.2f}"], style={"fontSize": "18px"}),
+                        html.Li([html.B("Precision: "), f"{metrics_mate['precision']:.2f}"], style={"fontSize": "18px"}),
+                        html.Li([html.B("Recall: "), f"{metrics_mate['recall']:.2f}"], style={"fontSize": "18px"}),
+                        html.Li([html.B("F1-score: "), f"{metrics_mate['f1']:.2f}"], style={"fontSize": "18px"}),
                     ])
                 ], width=6),
+
                 dbc.Col([
-                    html.H4("Modelo Inglés"),
+                    html.H4("Modelo Inglés", style={"fontWeight": "bold", "marginBottom": "15px"}),
+                    html.Img(
+                        src=f"data:image/png;base64,{encoded_roc_ingles}",
+                        style={"width": "100%", "height": "600px", "marginBottom": "20px"}
+                    ),
                     html.Ul([
-                        html.Li(f"Accuracy: {metrics_ingles['accuracy']:.2f}"),
-                        html.Li(f"Precision: {metrics_ingles['precision']:.2f}"),
-                        html.Li(f"Recall: {metrics_ingles['recall']:.2f}"),
-                        html.Li(f"F1-score: {metrics_ingles['f1']:.2f}"),
+                        html.Li([html.B("Accuracy: "), f"{metrics_ingles['accuracy']:.2f}"], style={"fontSize": "18px"}),
+                        html.Li([html.B("Precision: "), f"{metrics_ingles['precision']:.2f}"], style={"fontSize": "18px"}),
+                        html.Li([html.B("Recall: "), f"{metrics_ingles['recall']:.2f}"], style={"fontSize": "18px"}),
+                        html.Li([html.B("F1-score: "), f"{metrics_ingles['f1']:.2f}"], style={"fontSize": "18px"}),
                     ])
                 ], width=6),
             ])
-        ])
+        ], style={"padding": "20px"})
+    
     else:
         return html.Div("Selecciona una pestaña válida.")
 
