@@ -6,26 +6,27 @@ import seaborn as sns
 import tensorflow as tf
 import pandas as pd
 from tensorflow import keras
+from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.metrics import CategoricalAccuracy, Precision, Recall
 
 # CARGA DE DATOS
-data_path = "SaberMate.csv"  # Ruta del archivo dentro del repositorio
-df_Mate = pd.read_csv(data_path)
-df_Mate.head()
+data_path = "SaberIngles.csv"  # Ruta del archivo dentro del repositorio
+df_Ingles = pd.read_csv(data_path)
+df_Ingles.head()
 
 # PREPARACIÓN DE DATOS
-variables_seleccionadas = ["nivelingles", "automovil", "internet", "periodo", 
-                            "estrato", "lavadora", "sexo", "edupadre", "edumadre"]
-variables_nominales = ["nivelingles", "automovil", "internet", "periodo", 
-                       "estrato", "lavadora", "sexo", "edupadre", "edumadre"]
-
+variables_seleccionadas = ["naturaleza", "Nivelmate", "calendario", "genero"]
+variables_nominales = ["naturaleza", "Nivelmate", "calendario", "genero"]
 # Aplicar One-Hot Encoding
-one_hot_encoder = OneHotEncoder(sparse_output=False, drop="first")  #drop="first" para evitar colinealidad entre categorías.
-X_transformed = one_hot_encoder.fit_transform(df_Mate[variables_nominales])
-y_int = df_Mate["Nivelmate"] - 1 
+one_hot_encoder = OneHotEncoder(sparse_output=False, drop="first")  # Evita colinealidad
+X_transformed = one_hot_encoder.fit_transform(df_Ingles[variables_nominales])
+
+# Crear y aplicar LabelEncoder
+le = LabelEncoder()
+y_int = le.fit_transform(df_Ingles["nivelingles"])
 
 # BALANCEO DE CLASES
 from imblearn.under_sampling import RandomUnderSampler
@@ -39,11 +40,15 @@ resampling_pipeline = Pipeline([
     # Luego clona las clases restantes para igualarlas (menos la ya reducida)
     ('oversample', RandomOverSampler(sampling_strategy='not majority', random_state=42))
 ])
+#Under y over sampling
+#X_resampled, y_resampled_int = resampling_pipeline.fit_resample(X_transformed, y_int)
 
-X_resampled, y_resampled_int = resampling_pipeline.fit_resample(X_transformed, y_int)
+#Solo over sampling
+oversampler = RandomOverSampler(random_state=42)
+X_resampled, y_resampled_int = oversampler.fit_resample(X_transformed, y_int)
 
 # Volver a convertir etiquetas a one-hot
-y_resampled = tf.keras.utils.to_categorical(y_resampled_int, num_classes=6)
+y_resampled = tf.keras.utils.to_categorical(y_resampled_int, num_classes=5)
 
 # División de datos en entrenamiento, validación y pruebas
 X_train_full, X_test, y_train_full, y_test = train_test_split(
@@ -55,46 +60,48 @@ X_train, X_valid, y_train, y_valid = train_test_split(
 tf.keras.backend.clear_session()
 
 # CONFIGURAR MLflow
-#experiment = mlflow.set_experiment("Modelo_Nivel_Matemáticas")
+#experiment_name = "Model_Englishh"
+#experiment_id = mlflow.create_experiment(experiment_name)
+#experiment = mlflow.set_experiment("Model_Englishh")
+mlflow.set_tracking_uri("http://localhost:5000")  # Cambia la URL según tu configuración
 
-mlflow.set_tracking_uri("http://localhost:5000")  # Cambia la URL según tu configuración de MLflow
-
-#with mlflow.start_run(experiment_id=experiment.experiment_id):
-with mlflow.start_run():
+with mlflow.start_run(experiment_id=236681886414905201): 
     # CONSTRUCCIÓN DEL MODELO
     capas = [
-        {"tipo": "Dense", "unidades": 64, "activacion": "ReLU", "dropout": 0.3},
-        {"tipo": "Dense", "unidades": 32, "activacion": "ReLu", "dropout": 0.1},
-        {"tipo": "Dense", "unidades": 16, "activacion": "ReLu"},
-        {"tipo": "Dense", "unidades": 6, "activacion": "softmax"}
+        {"tipo": "Dense", "unidades": 128, "activacion": "ReLU", "dropout": 0.3},
+        {"tipo": "Dense", "unidades": 64, "activacion": "ReLU", "dropout": 0.2},
+        {"tipo": "Dense", "unidades": 5, "activacion": "softmax"}
     ]
     
-    model_mate = keras.Sequential([
-        keras.layers.Dense(64, activation='relu', input_shape=(X_train.shape[1],)),
+    model_english = keras.Sequential([
+         keras.layers.Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
         keras.layers.Dropout(0.3),
-        keras.layers.Dense(32, activation='relu'),
-        keras.layers.Dropout(0.1),
-        keras.layers.Dense(16, activation='relu'),
-        keras.layers.Dense(6, activation='softmax')
+        keras.layers.Dense(64, activation='relu'),
+        keras.layers.Dropout(0.2),
+        keras.layers.Dense(5, activation='softmax')
     ])
 
     #from tensorflow.keras.optimizers import SGD
     #optimizer = SGD(learning_rate=0.01, momentum=0.9)
-    optimizer = keras.optimizers.Adam(learning_rate=0.0005) #en vez del valor por defecto (0.001).
+    optimizer = keras.optimizers.Adam(learning_rate=0.001) #en vez del valor por defecto (0.001).
+    
+    model_english.compile(loss="categorical_crossentropy", optimizer=optimizer,
+                       metrics=[CategoricalAccuracy(), keras.metrics.Precision(), keras.metrics.Recall()])
+    
     mlflow.log_param("Optimizador", type(optimizer).__name__)  # Ej: 'Adam'
     mlflow.log_param("Tasa_Aprendizaje", optimizer.learning_rate.numpy())
-
-
-    model_mate.compile(loss="categorical_crossentropy", optimizer=optimizer,
-                       metrics=[CategoricalAccuracy(), keras.metrics.Precision(), keras.metrics.Recall()])
 
     # REGISTRO DE VARIABLES Y PARÁMETROS EN MLflow
     mlflow.log_param("Variables_Seleccionadas", str(variables_seleccionadas))
     mlflow.log_param("Num_Capas", len(capas))
 
-    callback = keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True)
-    mlflow.log_param("Callback_EarlyStopping", "Sí")
-    mlflow.log_param("EarlyStopping_Patience", callback.patience)
+    #callback = keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True)
+    callbacks = [
+        tf.keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True),
+        tf.keras.callbacks.ReduceLROnPlateau(factor=0.5, patience=5, verbose=1)
+    ]
+    mlflow.log_param("Callback_EarlyStopping_and_ReduceLR", "Si")
+    #mlflow.log_param("EarlyStopping_Patience", callback.patience)
 
     for i, capa in enumerate(capas):
         mlflow.log_param(f"Capa_{i+1}_Tipo", capa["tipo"])
@@ -104,15 +111,15 @@ with mlflow.start_run():
             mlflow.log_param(f"Capa_{i+1}_Dropout", capa["dropout"])
 
     # ENTRENAMIENTO DEL MODELO
-    #history = model_mate.fit(X_train, y_train, epochs=30, batch_size=32, validation_data=(X_valid, y_valid), verbose=0)
-    history = model_mate.fit(X_train, y_train,
+    #history = model_english.fit(X_train, y_train, epochs=30, batch_size=32, validation_data=(X_valid, y_valid), verbose=0)
+    history = model_english.fit(X_train, y_train,
                     validation_data=(X_valid, y_valid),
                     epochs=50,
                     batch_size=32,
-                    callbacks=[callback], verbose=0)
+                    callbacks=callbacks, verbose=0)
     
-    model_mate.save("modelo_mate_entrenado.keras")
-    mlflow.log_artifact("modelo_mate_entrenado.keras")
+    model_english.save("modelo_ingles_entrenado.keras")
+    mlflow.log_artifact("modelo_ingles_entrenado.keras")
 
     from mlflow.models import infer_signature 
     infer_signature(model_input=X_transformed[0])
@@ -120,7 +127,7 @@ with mlflow.start_run():
     # EVALUACIÓN DEL MODELO
     
     #PREDICCION
-    predicciones = model_mate.predict(X_test)  #Devuelve la probabilidad de cada clase (n_muestras, 6)
+    predicciones = model_english.predict(X_test)  #Devuelve la probabilidad de cada clase (n_muestras, 6)
     # Convertir los datos de prueba y las predicciones a etiquetas de clase
     y_true = np.argmax(y_test, axis=1)
     y_pred = np.argmax(predicciones, axis=1)
@@ -215,10 +222,6 @@ with mlflow.start_run():
 
 
     # Guardar el modelo en MLflow
-    mlflow.sklearn.log_model(model_mate, "modelo_matematicas")
+    mlflow.sklearn.log_model(model_english, "modelo_ingles")
 
     print("Experimento registrado en MLflow.")
-
-
-# mlflow ui 
-# http://127.0.0.1:5000
