@@ -46,6 +46,38 @@ estilo_boton = {
     "fontSize": "18px"
 }
 
+def tabla_niveles_mate():
+    niveles = []
+    step = 100 / 6
+    for i in range(6):
+        lower = i * step
+        upper = (i + 1) * step
+        if i == 0:
+            niveles.append(["Nivel 1", f"{lower:.2f} – {upper:.2f}"])
+        else:
+            niveles.append([f"Nivel {i+1}", f"{lower:.2f} – {upper:.2f}"])
+    return dbc.Table(
+        [html.Thead(html.Tr([html.Th("Nivel"), html.Th("Rango puntaje")], style={"backgroundColor": "#F6E9E8"}))] +
+        [html.Tbody([html.Tr([html.Td(nivel, style={"fontWeight": "bold"}), html.Td(rango)]) for nivel, rango in niveles])],
+        bordered=True,
+        style={"marginBottom": "0", "marginTop": "10px", "backgroundColor": "#fff", "width": "100%"}
+    )
+
+def tabla_niveles_ingles():
+    niveles = [
+        ("A-", "Menos de 43"),
+        ("A1", "43 – 52"),
+        ("A2", "53 – 62"),
+        ("B1", "63 – 82"),
+        ("B+", "83 o más")
+    ]
+    return dbc.Table(
+        [html.Thead(html.Tr([html.Th("Nivel"), html.Th("Rango puntaje")], style={"backgroundColor": "#F6E9E8"}))] +
+        [html.Tbody([html.Tr([html.Td(nivel, style={"fontWeight": "bold"}), html.Td(rango)]) for nivel, rango in niveles])],
+        bordered=True,
+        style={"marginBottom": "0", "marginTop": "10px", "backgroundColor": "#fff", "width": "100%"}
+    )
+
 df_Mate = pd.read_csv('SaberMate.csv')
 df_Ingles = pd.read_csv('SaberIngles.csv')
 
@@ -308,10 +340,26 @@ def render_tab(tab):
                 "¿Se puede predecir el resultado categorizado en matemáticas de acuerdo con el contexto personal y familiar del estudiante?",
                 style={**estilo_texto, "textAlign": "center", "fontStyle": "italic"}
             ),
-            html.Div(
-                serve_confusion_image("confusion_matrix_mate.png", width_pct=48),
-                style={"display": "flex", "justifyContent": "center", "marginBottom": "18px"}
-            ),
+            dbc.Row([
+                dbc.Col(
+                    html.Div(
+                        serve_confusion_image("confusion_matrix_mate.png", width_pct=98),
+                        style=estilo_card
+                    ),
+                    width=8
+                ),
+                dbc.Col(
+                    html.Div([
+                        html.H5("Equivalencia de Niveles", style=estilo_subtitulo),
+                        tabla_niveles_mate(),
+                        html.P(
+                            "El puntaje Saber 11 de Matemáticas se divide en 6 niveles iguales entre 0 y 100.",
+                            style={**estilo_texto, "fontSize": "17px", "color": "#555"}
+                        )
+                    ], style=estilo_card),
+                    width=4
+                )
+            ], align="center", style={"marginBottom": "18px"}),
             html.Div([
                 html.H4("Respuesta:", style=estilo_subtitulo),
                 html.P(
@@ -333,10 +381,26 @@ def render_tab(tab):
                 "¿Se puede predecir el resultado categorizado en inglés de acuerdo con el contexto escolar?",
                 style={**estilo_texto, "textAlign": "center", "fontStyle": "italic"}
             ),
-            html.Div(
-                serve_confusion_image("confusion_matrix_ingles.png", width_pct=48),
-                style={"display": "flex", "justifyContent": "center", "marginBottom": "18px"}
-            ),
+            dbc.Row([
+                dbc.Col(
+                    html.Div(
+                        serve_confusion_image("confusion_matrix_ingles.png", width_pct=98),
+                        style=estilo_card
+                    ),
+                    width=8
+                ),
+                dbc.Col(
+                    html.Div([
+                        html.H5("Equivalencia de Niveles", style=estilo_subtitulo),
+                        tabla_niveles_ingles(),
+                        html.P(
+                            "El puntaje Saber 11 de Inglés se agrupa en niveles oficiales del MCER.",
+                            style={**estilo_texto, "fontSize": "17px", "color": "#555"}
+                        )
+                    ], style=estilo_card),
+                    width=4
+                )
+            ], align="center", style={"marginBottom": "18px"}),
             html.Div([
                 html.H4("Respuesta:", style=estilo_subtitulo),
                 html.P([
